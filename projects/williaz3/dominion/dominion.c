@@ -643,6 +643,18 @@ int getCost(int cardNumber)
   return -1;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
 int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState *state, int handPos, int *bonus)
 {
   int i;
@@ -661,12 +673,115 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
   if (nextPlayer > (state->numPlayers - 1)){
     nextPlayer = 0;
   }
-  
+
+
+
+//Adventurer Refactor
+if ( card == 7 ){
+
+ while(drawntreasure<2){
+	int ROACH;
+	if (state->deckCount[currentPlayer] <1){//if the deck is empty we need to shuffle discard and add to deck
+	  shuffle(currentPlayer, state);
+	}
+	drawCard(currentPlayer, state);
+	cardDrawn = state->hand[currentPlayer][state->handCount[currentPlayer]-1];//top card of hand is most recently drawn card.
+	if (cardDrawn == copper || cardDrawn == silver || cardDrawn == gold)
+	drawntreasure++;
 	
+	else{
+	  temphand[z]=cardDrawn;
+	  state->handCount[currentPlayer]--; //this should just remove the top card (the most recently drawn one).
+	
+	//Refactor: add a new counter ROACH to make sure no more than 5 cards are cycled through regardless of how many treasures are drawn
+	ROACH++;
+	if (ROACH > 2 ){
+	return 0;
+	}
+	
+	  z++;
+	}
+      }
+      while(z-1>=0){
+	state->discard[currentPlayer][state->discardCount[currentPlayer]++]=temphand[z-1]; // discard all cards in play that have been drawn
+	z=z-1;
+      }
+	return 0;      
+
+}
+
+//Smithy Refactor
+if(card == 13){
+
+ //+3 Cards
+      for (i = 0; i < 3; i++)
+	{
+	  drawCard(currentPlayer, state);
+	}
+			
+      //discard card from hand
+      discardCard(handPos, currentPlayer, state, 0);
+	
+	//Refactor: Each Smithy decrements the players number of actions by one as long as they have at least one or more, keeping them from going negative
+	if (state->numActions > 1);
+	state->numActions--;
+
+
+      return 0;
+
+}
+//Salvager REfactor
+if (card == 24){
+ //+1 buy
+      state->numBuys++;
+			
+      if (choice1)
+	{
+	  //gain coins equal to trashed card
+	
+	//refactoring: Double the value of the recycled card
+	int doubleValue;
+	doubleValue = 2 * getCost( handCard(choice1, state) );
+	  state->coins = state->coins + doubleValue;
+	  //trash card
+	  discardCard(choice1, currentPlayer, state, 1);	
+	}
+			
+      //discard card
+      discardCard(handPos, currentPlayer, state, 0);
+      return 0;
+ }
+	
+
+//Outpost Refactor
+if (card == 23){
+
+ //set outpost flag
+      state->outpostPlayed++;
+      //discard card
+      discardCard(handPos, currentPlayer, state, 0);
+      
+	//Refactor: provide the next player a bonus card in hand to account for the lost turn
+	state->handCount[nextPlayer]++;
+	return 0;
+}
+
+
+
+//Gardens Refactor
+if (card == 10){
+//Refactor: Draws a card in addition to normal affect of providing 1 victry point for each 10 cards in the players deck
+drawCard(currentPlayer, state);
+return -1;
+}
+
+
   //uses switch to select card and perform actions
   switch( card ) 
     {
+/*
     case adventurer:
+	printf("adventuer card %d\n", card);
       while(drawntreasure<2){
 	if (state->deckCount[currentPlayer] <1){//if the deck is empty we need to shuffle discard and add to deck
 	  shuffle(currentPlayer, state);
@@ -686,7 +801,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 	z=z-1;
       }
       return 0;
-			
+*/			
     case council_room:
       //+4 Cards
       for (i = 0; i < 4; i++)
@@ -763,10 +878,11 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
       //Reset Hand
       			
       return 0;
-			
+
+/*	
     case gardens:
       return -1;
-			
+*/			
     case mine:
       j = state->hand[currentPlayer][choice1];  //store card we will trash
 
@@ -827,9 +943,10 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
 
 
       return 0;
-		
+/*		
     case smithy:
-      //+3 Cards
+	printf("smithy card # %d\n", card);     
+ //+3 Cards
       for (i = 0; i < 3; i++)
 	{
 	  drawCard(currentPlayer, state);
@@ -838,8 +955,9 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
       //discard card from hand
       discardCard(handPos, currentPlayer, state, 0);
       return 0;
-		
+*/		
     case village:
+	printf("Village # %d \n", card);
       //+1 Card
       drawCard(currentPlayer, state);
 			
@@ -1154,16 +1272,21 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
       //trash card
       discardCard(handPos, currentPlayer, state, 1);		
       return 0;
-		
+/*		
     case outpost:
+	printf("outpost #%d \n", card);
       //set outpost flag
       state->outpostPlayed++;
 			
       //discard card
       discardCard(handPos, currentPlayer, state, 0);
       return 0;
-		
+
+*/
+
+/*		
     case salvager:
+	printf("salvager #%d \n", card);
       //+1 buy
       state->numBuys++;
 			
@@ -1178,6 +1301,7 @@ int cardEffect(int card, int choice1, int choice2, int choice3, struct gameState
       //discard card
       discardCard(handPos, currentPlayer, state, 0);
       return 0;
+*/
 		
     case sea_hag:
       for (i = 0; i < state->numPlayers; i++){
